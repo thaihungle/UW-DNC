@@ -11,7 +11,13 @@ python synthetic_task.py --task=copy --mode=train
 python synthetic_task.py --task=copy --mode=train --hold_mem_mode=2
 3. CUW DNC:
 python synthetic_task.py --task=copy --mode=train --hold_mem_mode=2 --cache_attend_dim=16 --cache_size=10 --hidden_dim=100  
+
 Testing:  
 --mode=test
+
+Random writing:  
+--memo_type=random
+
+Feel free to play with other parameters
 
 
