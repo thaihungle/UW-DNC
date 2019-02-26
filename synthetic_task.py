@@ -254,10 +254,6 @@ def synthetic_task(args):
                 controller_cell_type=args.cell_type,
                 use_emb_encoder=False,
                 use_emb_decoder=False,
-                dual_controller=args.dual_controller,
-                decoder_mode=False,
-                write_protect=True,
-                memory_read_heads_decode=args.read_heads_decode,
                 hold_mem_mode=args.hold_mem_mode,
                 hidden_controller_dim=args.hidden_dim,
                 cache_attend_dim=args.cache_attend_dim,
@@ -450,22 +446,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', default="train")
     parser.add_argument('--use_mem', default=True, type=str2bool)
-    parser.add_argument('--cell_type', default="lstm")
+    parser.add_argument('--cell_type', default="nlstm")
     parser.add_argument('--mem_type', default="dnc")
-    parser.add_argument('--task', default="copy")
+    parser.add_argument('--task', default="copy", help="support 5 tasks: copy/reverse/double/sum/max")
     parser.add_argument('--from_checkpoint', default="")
     parser.add_argument('--hidden_dim', default=128, type=int)
-    parser.add_argument('--attend', default=0, type=int)
     parser.add_argument('--cache_attend_dim', default=0, type=int)
     parser.add_argument('--mem_size', default=4, type=int)
     parser.add_argument('--word_size', default=64, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--read_heads', default=1, type=int)
     parser.add_argument('--read_heads_decode', default=1, type=int)
-    parser.add_argument('--iread', default=False, type=str2bool)
     parser.add_argument('--batch_norm', default=True, type=str2bool)
-    parser.add_argument('--simple_version', default=False, type=str2bool)
-    parser.add_argument('--dual_controller', default=False, type=str2bool)
     parser.add_argument('--number_range', default=10, type=int)
     parser.add_argument('--length_from', default=50, type=int)
     parser.add_argument('--length_to', default=50, type=int)
@@ -485,24 +477,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device
 
-    args.task="copy"
-    args.cell_type="nlstm"
-    args.mem_type="dnc"
 
-    args.hold_mem_mode = 2
-    args.cache_attend_dim=16
-    args.cache_size=10
 
-    args.hidden_dim = 100
-    # args.memo_type = "random"
-    # args.use_mem = False
-    # args.hidden_dim = 50
-
-    # args.mode='test'
-    # args.from_checkpoint = 'default'
 
 
     # args = limit_copy(args)
+
     print(args)
 
     hold_mem_random = np.ones(args.length_to + 1, dtype=bool)
