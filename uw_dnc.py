@@ -14,7 +14,7 @@ class DNC:
                  use_mem=True, decoder_mode=False, emb_size=64, parallel_rnn=1,
                  write_protect=False,  hold_mem_mode=0,
                  dual_controller=False, dual_emb=True, controller_cell_type="lstm",
-                 use_teacher=False, cache_attend_dim=0, cache_content="h",
+                 use_teacher=False, cache_attend_dim=0,
                  use_encoder_output=False, clip_output=0,
                  pass_encoder_state=True,
                  memory_read_heads_decode=None, enable_drop_out=False,
@@ -54,7 +54,7 @@ class DNC:
         self.read_heads = memory_read_heads
         self.batch_norm=batch_norm
         self.clip_output=clip_output
-        self.cache_content=cache_content
+
         if memory_read_heads_decode is None:
             self.read_heads_decode = memory_read_heads
         else:
@@ -121,8 +121,7 @@ class DNC:
                                       initializer=tf.random_normal_initializer(stddev=0.1))
 
             value_size = self.hidden_controller_dim
-            if self.cache_content=="w":
-                value_size = self.word_size
+
             self.cU_a = tf.get_variable('cU_a', [value_size, self.cache_attend_dim],
                                   initializer=tf.random_normal_initializer(stddev=0.1))
             if self.use_mem:

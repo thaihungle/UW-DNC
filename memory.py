@@ -4,7 +4,7 @@ import utility
 
 class Memory:
 
-    def __init__(self, words_num=256, word_size=64, read_heads=1, batch_size=1, simple_version=False):
+    def __init__(self, words_num=256, word_size=64, read_heads=1, batch_size=1):
         """
         constructs a memory matrix with read heads and a write head as described
         in the DNC paper
@@ -26,7 +26,6 @@ class Memory:
         self.word_size = word_size
         self.read_heads = read_heads
         self.batch_size = batch_size
-        self.simple_version = simple_version
 
         # a words_num x words_num identity matrix
         self.I = tf.constant(np.identity(words_num, dtype=np.float32)) # to support calculate link matrix
@@ -384,21 +383,16 @@ class Memory:
         """
 
         lookup_weighting = self.get_lookup_weighting(memory_matrix, key, strength)
-        if self.simple_version:
-            new_write_weighting = write_gate * tf.squeeze(lookup_weighting)
-            new_usage_vector = usage_vector
-            new_link_matrix = link_matrix
-            new_precedence_vector = precedence_vector
-        else:
-            new_usage_vector = self.update_usage_vector(usage_vector, read_weightings, write_weighting, free_gates)
 
-            sorted_usage, free_list = tf.nn.top_k(-1 * new_usage_vector, self.words_num)#make it from min to max
-            sorted_usage = -1 * sorted_usage #convert to normal values
+        new_usage_vector = self.update_usage_vector(usage_vector, read_weightings, write_weighting, free_gates)
 
-            allocation_weighting = self.get_allocation_weighting(sorted_usage, free_list)
-            new_write_weighting = self.update_write_weighting(lookup_weighting, allocation_weighting, write_gate, allocation_gate)
-            new_link_matrix = self.update_link_matrix(precedence_vector, link_matrix, new_write_weighting)
-            new_precedence_vector = self.update_precedence_vector(precedence_vector, new_write_weighting)
+        sorted_usage, free_list = tf.nn.top_k(-1 * new_usage_vector, self.words_num)#make it from min to max
+        sorted_usage = -1 * sorted_usage #convert to normal values
+
+        allocation_weighting = self.get_allocation_weighting(sorted_usage, free_list)
+        new_write_weighting = self.update_write_weighting(lookup_weighting, allocation_weighting, write_gate, allocation_gate)
+        new_link_matrix = self.update_link_matrix(precedence_vector, link_matrix, new_write_weighting)
+        new_precedence_vector = self.update_precedence_vector(precedence_vector, new_write_weighting)
 
         new_memory_matrix = self.update_memory(memory_matrix, new_write_weighting, write_vector, erase_vector)
 
@@ -436,12 +430,10 @@ class Memory:
 
         lookup_weighting = self.get_lookup_weighting(memory_matrix, keys, strengths) # content weight: later use to produce read weight
 
-        if self.simple_version:
-            new_read_weightings = lookup_weighting
-        else:
-            # need last read weights to infer forward, backward --> just mul with link matrix
-            forward_weighting, backward_weighting = self.get_directional_weightings(read_weightings, link_matrix)
-            new_read_weightings = self.update_read_weightings(lookup_weighting, forward_weighting, backward_weighting, read_modes)
+
+        # need last read weights to infer forward, backward --> just mul with link matrix
+        forward_weighting, backward_weighting = self.get_directional_weightings(read_weightings, link_matrix)
+        new_read_weightings = self.update_read_weightings(lookup_weighting, forward_weighting, backward_weighting, read_modes)
 
         new_read_vectors = self.update_read_vectors(memory_matrix, new_read_weightings)
 

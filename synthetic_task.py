@@ -354,7 +354,6 @@ def synthetic_task(args):
                         summary = tf.Summary()
                         summary.value.add(tag='batch_train_loss', simple_value=np.mean(last_100_losses))
 
-                        ncomputer.clear_current_mem(session)
                         for ii in range(5):
                             input_data, target_output, itarget, seq_len, decoder_length, brin, brout, hold = \
                                 prepare_batch(batch_size, args.number_range, args.length_from, args.length_to, args)
@@ -384,7 +383,7 @@ def synthetic_task(args):
                                     out_list.append(out[b][io])
                                 bout_list.append(out_list)
                             trscores_acc.append(exact_acc(np.asarray(brout), np.asarray(bout_list), pprint=1))
-                            visual_util.plot_memory(emem_v, dmem_v, hold, brin)
+                            # visual_util.plot_memory(emem_v, dmem_v, hold, brin)
 
                         tpre=np.mean(trscores_acc)
                         print('acc {}'.format(tpre))
@@ -467,7 +466,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_norm', default=True, type=str2bool)
     parser.add_argument('--simple_version', default=False, type=str2bool)
     parser.add_argument('--dual_controller', default=False, type=str2bool)
-    parser.add_argument('--number_range', default=50, type=int)
+    parser.add_argument('--number_range', default=10, type=int)
     parser.add_argument('--length_from', default=50, type=int)
     parser.add_argument('--length_to', default=50, type=int)
     parser.add_argument('--memo_type', default="", type=str)
@@ -486,14 +485,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device
 
-    args.task="max"
+    args.task="copy"
     args.cell_type="nlstm"
     args.mem_type="dnc"
+
     args.hold_mem_mode = 2
     args.cache_attend_dim=16
     args.cache_size=10
 
-    # args.hidden_dim = 100
+    args.hidden_dim = 100
     # args.memo_type = "random"
     # args.use_mem = False
     # args.hidden_dim = 50
